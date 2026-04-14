@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>电影剧情评估与优化工作台</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="page-shell">
+    <main class="workspace" id="workspace">
+      <section class="panel panel-input" id="panel-input">
+        <div class="panel-heading">
+          <div>
+            <p class="panel-kicker">一号窗口</p>
+            <h2>剧情输入区</h2>
+          </div>
+          <div class="panel-head-actions">
+            <span class="mini-pill" id="status-completeness">0%</span>
+            <button class="ghost-button" id="load-example" type="button">载入示例</button>
+          </div>
+        </div>
+
+        <div class="panel-toolbar">
+          <div class="scroll-controls" data-scroll-target="input-scroll">
+            <button class="scroll-button" type="button" data-direction="up">向上</button>
+            <button class="scroll-button" type="button" data-direction="down">向下</button>
+          </div>
+          <span class="toolbar-note">列宽可横向拖拽，最小宽度已锁定</span>
+        </div>
+
+        <div class="panel-scroll" id="input-scroll">
+          <p class="panel-intro">
+            输入电影剧情概述，并尽量补充题材、主角、冲突、转折和结局走向。下方提示按钮可直接插入结构化线索。
+          </p>
+
+          <div class="prompt-bank" id="prompt-bank">
+            <button class="chip" type="button" data-insert="题材倾向：">题材</button>
+            <button class="chip" type="button" data-insert="主角设定：">主角</button>
+            <button class="chip" type="button" data-insert="核心目标：">目标</button>
+            <button class="chip" type="button" data-insert="主要冲突：">冲突</button>
+            <button class="chip" type="button" data-insert="关键反转：">反转</button>
+            <button class="chip" type="button" data-insert="结局走向：">结局</button>
+            <button class="chip" type="button" data-insert="希望突出情绪：">情绪</button>
+            <button class="chip" type="button" data-insert="拍摄规模偏向：">规模</button>
+          </div>
+
+          <label class="input-shell" for="story-input">
+            <span class="input-label">剧情概述</span>
+            <textarea
+              id="story-input"
+              rows="16"
+              placeholder="例如：一名被停职的刑警在寻找失踪女儿时，发现城市连环纵火案与一场二十年前的矿难有关……"
+            ></textarea>
+          </label>
+
+          <div class="input-meta">
+            <div class="meta-card">
+              <span class="meta-label">文本长度</span>
+              <strong id="char-count">0 字</strong>
+            </div>
+            <div class="meta-card">
+              <span class="meta-label">信息信号</span>
+              <strong id="signal-summary">待补充关键剧情元素</strong>
+            </div>
+          </div>
+
+          <div class="signal-list" id="signal-list" aria-live="polite"></div>
+
+          <div class="action-row">
+            <button class="primary-button" id="analyze-button" type="button">开始评估</button>
+            <button class="ghost-button" id="clear-input" type="button">清空内容</button>
+          </div>
+        </div>
+      </section>
+
+      <div class="divider" id="divider-left" aria-hidden="true"></div>
+
+      <section class="panel panel-analysis" id="panel-analysis">
+        <div class="panel-heading">
+          <div>
+            <p class="panel-kicker">二号窗口</p>
+            <h2>剧情评估区</h2>
+          </div>
+          <div class="panel-head-actions">
+            <span class="analysis-badge" id="analysis-badge">规则驱动评估</span>
+            <span class="mini-pill" id="status-genre">待分析</span>
+          </div>
+        </div>
+
+        <div class="panel-toolbar">
+          <div class="scroll-controls" data-scroll-target="analysis-scroll">
+            <button class="scroll-button" type="button" data-direction="up">向上</button>
+            <button class="scroll-button" type="button" data-direction="down">向下</button>
+          </div>
+          <span class="toolbar-note">支持左右拖拽分栏，评估区保留固定最小宽度</span>
+        </div>
+
+        <div class="panel-scroll" id="analysis-scroll">
+          <p class="panel-intro">
+            系统将根据剧情文本与内置素材库进行关键词、情绪与冲突类型匹配，给出当前剧情在市场层面的基础判断。
+          </p>
+
+          <section class="result-card">
+            <div class="result-header">
+              <h3>评估摘要</h3>
+              <span id="genre-match-pill" class="result-pill">等待输入</span>
+            </div>
+            <p id="market-feedback" class="market-feedback">
+              输入剧情后点击“开始评估”，这里会生成市场位置判断与调整方向。
+            </p>
+          </section>
+
+          <section class="score-grid" id="score-grid" aria-live="polite"></section>
+
+          <section class="library-section">
+            <div class="result-header">
+              <h3>素材文本库</h3>
+              <span class="result-pill">内置题材模板</span>
+            </div>
+            <div class="library-grid" id="library-grid"></div>
+          </section>
+        </div>
+      </section>
+
+      <div class="divider" id="divider-right" aria-hidden="true"></div>
+
+      <section class="panel panel-output" id="panel-output">
+        <div class="panel-heading">
+          <div>
+            <p class="panel-kicker">三号窗口</p>
+            <h2>建议与改写区</h2>
+          </div>
+          <div class="panel-head-actions">
+            <span class="mini-pill" id="status-suggestions">0 条</span>
+            <button class="ghost-button" id="select-recommended" type="button">勾选推荐项</button>
+          </div>
+        </div>
+
+        <div class="panel-toolbar">
+          <div class="scroll-controls" data-scroll-target="output-scroll">
+            <button class="scroll-button" type="button" data-direction="up">向上</button>
+            <button class="scroll-button" type="button" data-direction="down">向下</button>
+          </div>
+          <span class="toolbar-note">使用按钮控制本列上下查看内容</span>
+        </div>
+
+        <div class="panel-scroll" id="output-scroll">
+          <p class="panel-intro">
+            根据评估短板与题材特征生成建议。你可以勾选若干方向，再输出一份聚焦卖点和受众的新版剧情素材文本。
+          </p>
+
+          <section class="result-card">
+            <div class="result-header">
+              <h3>优化建议</h3>
+              <span class="result-pill" id="suggestion-count-pill">0 条可选</span>
+            </div>
+            <div class="suggestion-list" id="suggestion-list" aria-live="polite"></div>
+            <div class="action-row compact">
+              <button class="primary-button" id="generate-button" type="button">生成新版剧情</button>
+              <button class="ghost-button" id="clear-selection" type="button">清空勾选</button>
+            </div>
+          </section>
+
+          <section class="output-stack" id="output-stack">
+            <article class="output-card">
+              <span class="output-label">核心故事概括</span>
+              <p id="core-story">
+                完成分析后，这里会生成浓缩版核心故事概括。
+              </p>
+            </article>
+
+            <article class="output-card">
+              <span class="output-label">目标观众方向</span>
+              <p id="target-audience">
+                系统会结合匹配题材与商业化潜力，给出更适合的观众画像。
+              </p>
+            </article>
+
+            <article class="output-card">
+              <span class="output-label">升级后的剧情亮点</span>
+              <ul id="story-highlights" class="highlight-list">
+                <li>建议列表生成后，这里会汇总升级后的卖点。</li>
+              </ul>
+            </article>
+
+            <article class="output-card emphasis">
+              <span class="output-label">新的剧情梗概</span>
+              <p id="rewritten-story">
+                勾选建议并点击“生成新版剧情”后，这里会输出一段融合原始剧情、类型优势与优化方向的新文本。
+              </p>
+            </article>
+          </section>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="script.js" defer></script>
+</body>
+</html>
