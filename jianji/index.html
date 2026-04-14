@@ -1,0 +1,281 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0"
+    />
+    <title>剪辑台</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="layout-grid">
+        <section class="timeline-column">
+          <section class="timeline-panel">
+            <div class="timeline-toolbar">
+              <div class="title-block">
+                <p class="eyebrow">Editor</p>
+                <h2 class="panel-title">剪辑台</h2>
+              </div>
+
+              <div class="stat-row">
+                <article class="stat-pill">
+                  <strong id="videoCount">0</strong>
+                  <span>视频片段</span>
+                </article>
+                <article class="stat-pill">
+                  <strong id="audioCount">0</strong>
+                  <span>音频片段</span>
+                </article>
+                <article class="stat-pill">
+                  <strong id="totalDurationMetric">00:12</strong>
+                  <span>总时长</span>
+                </article>
+                <article class="stat-pill">
+                  <strong id="viewWindowLabel">00:12</strong>
+                  <span>当前视窗</span>
+                </article>
+              </div>
+
+              <div class="toolbar-actions">
+                <span id="selectedBadge" class="selected-pill">未选中片段</span>
+                <button
+                  id="addVideoTrackButton"
+                  class="icon-button"
+                  type="button"
+                  aria-label="添加视频轨道"
+                  title="添加视频轨道"
+                >
+                  +V
+                </button>
+                <button
+                  id="addAudioTrackButton"
+                  class="icon-button"
+                  type="button"
+                  aria-label="添加音频轨道"
+                  title="添加音频轨道"
+                >
+                  +A
+                </button>
+              </div>
+            </div>
+
+            <div class="action-row">
+              <div
+                id="themeSpectrum"
+                class="theme-spectrum"
+                role="group"
+                aria-label="背景主题选择"
+              >
+                <span class="theme-spectrum-track"></span>
+                <span id="themeKnob" class="theme-spectrum-knob"></span>
+                <button
+                  class="theme-stop"
+                  type="button"
+                  data-theme="midnight"
+                  data-index="0"
+                  aria-label="Midnight"
+                  title="Midnight"
+                ></button>
+                <button
+                  class="theme-stop"
+                  type="button"
+                  data-theme="ember"
+                  data-index="1"
+                  aria-label="Ember"
+                  title="Ember"
+                ></button>
+                <button
+                  class="theme-stop"
+                  type="button"
+                  data-theme="aurora"
+                  data-index="2"
+                  aria-label="Aurora"
+                  title="Aurora"
+                ></button>
+                <button
+                  class="theme-stop"
+                  type="button"
+                  data-theme="ocean"
+                  data-index="3"
+                  aria-label="Ocean"
+                  title="Ocean"
+                ></button>
+                <button
+                  class="theme-stop"
+                  type="button"
+                  data-theme="moss"
+                  data-index="4"
+                  aria-label="Moss"
+                  title="Moss"
+                ></button>
+              </div>
+
+              <label class="upload-chip">
+                <input id="videoInput" type="file" accept="video/*" multiple />
+                <span>上传视频</span>
+              </label>
+
+              <div id="uploadSummary" class="status-chip">未选择文件</div>
+
+              <label class="upload-chip">
+                <input id="audioInput" type="file" accept="audio/*" multiple />
+                <span>上传音频</span>
+              </label>
+
+              <button id="fitViewButton" class="ghost-button" type="button">
+                适配全轨
+              </button>
+
+              <button id="deleteClipButton" class="ghost-button" type="button">
+                删除选中
+              </button>
+
+              <button id="resetButton" class="ghost-button danger-button" type="button">
+                清空时间线
+              </button>
+            </div>
+
+            <div id="timelineStage" class="timeline-stage">
+              <canvas id="rulerCanvas" class="ruler-canvas"></canvas>
+              <div id="playhead" class="playhead">
+                <div class="playhead-cap"></div>
+              </div>
+              <div id="tracksStack" class="tracks-stack"></div>
+            </div>
+
+            <div class="timeline-slider-row">
+              <label class="slider-group">
+                <span>视图位置</span>
+                <input id="offsetSlider" type="range" min="0" max="1000" value="0" />
+              </label>
+              <label class="slider-group">
+                <span>细节缩放</span>
+                <input id="zoomSlider" type="range" min="0" max="100" value="0" />
+              </label>
+            </div>
+
+            <div class="timeline-footer">
+              <span id="playheadReadout">00:00.00</span>
+              <span class="timeline-hint">
+                滚轮可平移视窗，按住 Ctrl + 滚轮可缩放。拖动上方时间尺中的蓝色定位线可自由定位播放位置，松开后下方竖线会收起，只保留时间尺标记。点击轨道可选中，按住 Ctrl 或 Command 可多选轨道后统一删除。拖动片段可移动，拖左右边缘可裁剪，拖右下角可拉长查看细节，片段右上角可直接复制。
+              </span>
+            </div>
+          </section>
+        </section>
+
+        <aside class="preview-column">
+          <section id="previewCard" class="preview-card">
+            <div class="preview-head">
+              <div>
+                <p class="eyebrow">Preview</p>
+                <h2>实时预览窗口</h2>
+              </div>
+            </div>
+
+            <div id="previewStageShell" class="preview-stage-shell">
+              <video
+                id="previewVideo"
+                class="preview-video"
+                preload="metadata"
+                playsinline
+              ></video>
+
+              <div id="previewEmpty" class="preview-empty">
+                <strong>这里显示剪辑预览画面</strong>
+                <span>播放头移动到视频片段时会显示对应画面，仅有音频时会保留提示占位。</span>
+              </div>
+
+              <div class="preview-hud">
+                <strong id="previewTimeLabel">00:00.00</strong>
+                <span id="previewSourceLabel">等待添加视频或音频</span>
+              </div>
+            </div>
+
+            <div class="control-strip">
+              <div class="control-row transport-row">
+                <button id="backwardButton" class="ghost-button" type="button">
+                  后退15s
+                </button>
+                <button id="playButton" class="play-button" type="button">
+                  播放
+                </button>
+                <button id="forwardButton" class="ghost-button" type="button">
+                  前进15s
+                </button>
+                <button id="replayButton" class="ghost-button" type="button">
+                  重播
+                </button>
+                <button id="exportButton" class="ghost-button export-button" type="button">
+                  导出视频
+                </button>
+                <span class="time-readout">
+                  <strong id="currentTimeLabel">00:00.00</strong>
+                  <span>/</span>
+                  <span id="totalTimeLabel">00:12</span>
+                </span>
+              </div>
+
+              <div class="control-row export-row">
+                <span id="exportStatus" class="export-status">导出为 WebM</span>
+              </div>
+
+              <div class="control-row speed-row">
+                <span class="control-label">倍速</span>
+                <div class="speed-group">
+                  <button class="speed-button" type="button" data-speed="0.5">0.5x</button>
+                  <button class="speed-button is-active" type="button" data-speed="1">1.0x</button>
+                  <button class="speed-button" type="button" data-speed="1.5">1.5x</button>
+                  <button class="speed-button" type="button" data-speed="2">2.0x</button>
+                </div>
+              </div>
+
+              <div class="control-row volume-row">
+                <button id="muteButton" class="ghost-button" type="button">
+                  静音
+                </button>
+                <label class="volume-slider-wrap">
+                  <span class="control-label">音量</span>
+                  <input id="volumeSlider" type="range" min="0" max="100" value="82" />
+                </label>
+                <span id="volumeLabel" class="volume-label">82%</span>
+              </div>
+            </div>
+          </section>
+
+          <section class="info-strip">
+            <article class="detail-item">
+              <span>当前片段</span>
+              <strong id="selectedName">未选中</strong>
+            </article>
+            <article class="detail-item">
+              <span>所在轨道</span>
+              <strong id="selectedLane">-</strong>
+            </article>
+            <article class="detail-item">
+              <span>裁剪范围</span>
+              <strong id="selectedRange">-</strong>
+            </article>
+            <article class="detail-item">
+              <span>片段时长</span>
+              <strong id="selectedDuration">-</strong>
+            </article>
+            <article class="detail-item">
+              <span>当前背景</span>
+              <strong id="themeLabel">Midnight</strong>
+            </article>
+            <article class="detail-item">
+              <span>当前倍速</span>
+              <strong id="speedLabel">1.0x</strong>
+            </article>
+          </section>
+        </aside>
+      </section>
+    </main>
+
+    <div id="audioPool" class="audio-pool" aria-hidden="true"></div>
+    <script src="./app.js"></script>
+  </body>
+</html>
